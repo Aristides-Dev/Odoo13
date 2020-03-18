@@ -1,0 +1,36 @@
+version: '3'
+services:
+  nginx:
+    image: jwilder/nginx-proxy
+    container_name: ${NGX_CONTAINER_NAME}
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+  web:
+    image: pfplus/odoo:${O_VERSION}
+    environment:
+      - VIRTUAL_HOST=${VIRTUAL_HOST}
+      - VIRTUAL_PORT=${O_PORT}
+    container_name: ${O_CONTAINER_NAME}
+    depends_on:
+      - db
+    ports:
+      - ${O_EXTERNAL_PORT}:${O_PORT}
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./config:/etc/odoo
+      - ./addons:/mnt/extra-addons
+  db:
+    image: postgres:${PG_VERSION}
+    container_name: ${PG_CONTAINER_NAME}
+    environment:
+      - POSTGRES_DB=${PG_DB}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+      - POSTGRES_USER=${PG_USER}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data/pgdata
+volumes:
+  odoo-web-data:
+  odoo-db-data:
